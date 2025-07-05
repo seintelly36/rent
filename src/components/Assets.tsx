@@ -154,6 +154,13 @@ export const Assets: React.FC<AssetsProps> = ({
     return detail.value.toString();
   };
 
+  const formatAssetStatus = (status: Asset['status'] | undefined) => {
+    if (!status) {
+      return 'Unknown';
+    }
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-8">
@@ -399,7 +406,7 @@ export const Assets: React.FC<AssetsProps> = ({
                 
                 <div className="flex items-center justify-between mb-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(asset.status)}`}>
-                    {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
+                    {formatAssetStatus(asset.status)}
                   </span>
                 </div>
                 
