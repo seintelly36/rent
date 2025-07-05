@@ -132,8 +132,8 @@ export const Payments: React.FC<PaymentsProps> = ({
     setFormData({ 
       ...formData, 
       tenantId,
-      assetId: tenant?.assetId || '',
-      amount: tenant?.monthlyRent || 0
+      assetId: '',
+      amount: 0
     });
   };
 

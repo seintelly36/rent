@@ -8,15 +8,13 @@ import {
   Trash2,
   MessageCircle,
   Info,
-  X,
-  Building2
+  X
 } from 'lucide-react';
-import { Tenant, SocialMediaEntry, Asset } from '../types';
+import { Tenant, SocialMediaEntry } from '../types';
 import { formatDate, generateId } from '../utils/dateUtils';
 
 interface TenantsProps {
   tenants: Tenant[];
-  assets: Asset[];
   onAddTenant: (tenant: Tenant) => void;
   onUpdateTenant: (tenant: Tenant) => void;
   onDeleteTenant: (id: string) => void;
@@ -24,7 +22,6 @@ interface TenantsProps {
 
 export const Tenants: React.FC<TenantsProps> = ({
   tenants,
-  assets,
   onAddTenant,
   onUpdateTenant,
   onDeleteTenant,
@@ -32,7 +29,6 @@ export const Tenants: React.FC<TenantsProps> = ({
   const [showForm, setShowForm] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [formData, setFormData] = useState({
-    assetId: '',
     name: '',
     email: '',
     phone: '',
@@ -64,7 +60,6 @@ export const Tenants: React.FC<TenantsProps> = ({
 
   const resetForm = () => {
     setFormData({
-      assetId: '',
       name: '',
       email: '',
       phone: '',
@@ -79,7 +74,6 @@ export const Tenants: React.FC<TenantsProps> = ({
   const handleEdit = (tenant: Tenant) => {
     setEditingTenant(tenant);
     setFormData({
-      assetId: tenant.assetId,
       name: tenant.name,
       email: tenant.email,
       phone: tenant.phone,
@@ -127,16 +121,6 @@ export const Tenants: React.FC<TenantsProps> = ({
     return '🌐';
   };
 
-  const getAssetName = (assetId: string) => {
-    const asset = assets.find(a => a.id === assetId);
-    return asset ? asset.name : 'Unknown Asset';
-  };
-
-  const getAssetAddress = (assetId: string) => {
-    const asset = assets.find(a => a.id === assetId);
-    return asset ? asset.address : '';
-  };
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-8">
@@ -169,25 +153,6 @@ export const Tenants: React.FC<TenantsProps> = ({
                 <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Asset
-                    </label>
-                    <select
-                      required
-                      value={formData.assetId}
-                      onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select an asset</option>
-                      {assets.map((asset) => (
-                        <option key={asset.id} value={asset.id}>
-                          {asset.name} - {asset.address}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name
@@ -375,13 +340,6 @@ export const Tenants: React.FC<TenantsProps> = ({
               </div>
               
               <div className="space-y-3 mb-4">
-                <div className="flex items-center text-gray-600">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  <div>
-                    <span className="text-sm font-medium">{getAssetName(tenant.assetId)}</span>
-                    <span className="text-xs text-gray-500 block">{getAssetAddress(tenant.assetId)}</span>
-                  </div>
-                </div>
                 <div className="flex items-center text-gray-600">
                   <Mail className="h-4 w-4 mr-2" />
                   <span className="text-sm">{tenant.email}</span>

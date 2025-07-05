@@ -22,7 +22,6 @@ export const useTenants = (userId: string | undefined) => {
 
       const transformedData: Tenant[] = data.map(item => ({
         id: item.id,
-        assetId: item.asset_id,
         name: item.name,
         email: item.email,
         phone: item.phone,
@@ -52,7 +51,6 @@ export const useTenants = (userId: string | undefined) => {
         .from('tenants')
         .insert({
           user_id: userId,
-          asset_id: tenant.assetId,
           name: tenant.name,
           email: tenant.email,
           phone: tenant.phone,
@@ -67,7 +65,6 @@ export const useTenants = (userId: string | undefined) => {
 
       const newTenant: Tenant = {
         id: data.id,
-        assetId: data.asset_id,
         name: data.name,
         email: data.email,
         phone: data.phone,
@@ -92,7 +89,6 @@ export const useTenants = (userId: string | undefined) => {
       const { data, error } = await supabase
         .from('tenants')
         .update({
-          asset_id: tenant.assetId,
           name: tenant.name,
           email: tenant.email,
           phone: tenant.phone,
@@ -109,7 +105,6 @@ export const useTenants = (userId: string | undefined) => {
 
       const updatedTenant: Tenant = {
         id: data.id,
-        assetId: data.asset_id,
         name: data.name,
         email: data.email,
         phone: data.phone,
