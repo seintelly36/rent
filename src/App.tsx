@@ -299,6 +299,7 @@ function App() {
             element={
               <Tenants
                 tenants={tenants}
+                assets={assets}
                 onAddTenant={addTenant}
                 onUpdateTenant={updateTenant}
                 onDeleteTenant={handleDeleteTenant}

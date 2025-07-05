@@ -33,6 +33,7 @@ export interface SocialMediaEntry {
 
 export interface Tenant {
   id: string;
+  assetId: string;
   name: string;
   email: string;
   phone: string;
