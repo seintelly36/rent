@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { TopBar } from './components/TopBar';
 import { ResponsiveNav } from './components/ResponsiveNav';
 import { Dashboard } from './components/Dashboard';
@@ -24,7 +24,9 @@ import {
   Settings as SettingsIcon,
   Tag,
   FileText,
-  DollarSign
+  DollarSign,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { useAssetTypes } from './hooks/useAssetTypes';
 import { useAssets } from './hooks/useAssets';
@@ -36,38 +38,47 @@ import { isOverdue } from './utils/dateUtils';
 function App() {
   const { user, loading: authLoading } = useAuth();
   const { notifications, hideNotification } = useNotificationContext();
+  const location = useLocation();
   const [isNavOpen, setIsNavOpen] = useState(false);
   
   const {
     assetTypes,
     loading: assetTypesLoading,
+    error: assetTypesError,
     addAssetType,
     updateAssetType,
     deleteAssetType,
+    refetch: refetchAssetTypes,
   } = useAssetTypes(user?.id);
 
   const {
     assets,
     loading: assetsLoading,
+    error: assetsError,
     addAsset,
     updateAsset,
     deleteAsset,
+    refetch: refetchAssets,
   } = useAssets(user?.id);
 
   const {
     tenants,
     loading: tenantsLoading,
+    error: tenantsError,
     addTenant,
     updateTenant,
     deleteTenant,
+    refetch: refetchTenants,
   } = useTenants(user?.id);
 
   const {
     leases,
     loading: leasesLoading,
+    error: leasesError,
     addLease,
     updateLease,
     deleteLease,
+    refetch: refetchLeases,
     refetch: refetchLeases,
     adjustLeasePeriods,
   } = useLeases(user?.id);
@@ -75,11 +86,85 @@ function App() {
   const {
     payments,
     loading: paymentsLoading,
+    error: paymentsError,
     addPayment,
     updatePayment,
     deletePayment,
     collectPaymentWithDeposit,
+    refetch: refetchPayments,
   } = usePayments(user?.id);
+
+  // Combine loading and error states
+  const anyLoading = assetTypesLoading || assetsLoading || tenantsLoading || leasesLoading || paymentsLoading;
+  const anyError = assetTypesError || assetsError || tenantsError || leasesError || paymentsError;
+  const globalErrorMessage = assetTypesError || assetsError || tenantsError || leasesError || paymentsError || 'Failed to load data';
+
+  // Function to retry all data fetches
+  const retryAllFetches = () => {
+    if (user?.id) {
+      refetchAssetTypes();
+      refetchAssets();
+      refetchTenants();
+      refetchLeases();
+      refetchPayments();
+    }
+  };
+
+  // Refetch data when navigation changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const currentPath = location.pathname;
+    
+    // Determine which data to refetch based on the current route
+    switch (currentPath) {
+      case '/dashboard':
+        // Dashboard needs all data for comprehensive overview
+        refetchAssets();
+        refetchTenants();
+        refetchPayments();
+        refetchLeases();
+        break;
+      case '/assets':
+        refetchAssets();
+        refetchAssetTypes(); // Assets page needs asset types for the form
+        refetchTenants(); // Assets page shows tenant information
+        break;
+      case '/asset-types':
+        refetchAssetTypes();
+        break;
+      case '/tenants':
+        refetchTenants();
+        break;
+      case '/leases':
+        refetchLeases();
+        refetchAssets(); // Leases page needs assets for lease forms and display
+        refetchTenants(); // Leases page needs tenants for lease forms and display
+        break;
+      case '/payments':
+        refetchPayments();
+        refetchTenants(); // Payments page shows tenant information
+        refetchAssets(); // Payments page shows asset information
+        break;
+      case '/collections':
+        refetchLeases(); // Collections page is based on lease data
+        refetchPayments(); // Collections page needs payment data
+        refetchAssets(); // Collections page shows asset information
+        refetchTenants(); // Collections page shows tenant information
+        break;
+      case '/reports':
+        // Reports page needs all data for comprehensive reporting
+        refetchAssets();
+        refetchTenants();
+        refetchLeases();
+        refetchPayments();
+        refetchAssetTypes();
+        break;
+      default:
+        // For any other routes, don't refetch to avoid unnecessary API calls
+        break;
+    }
+  }, [location.pathname, user?.id, refetchAssets, refetchAssetTypes, refetchTenants, refetchLeases, refetchPayments]);
 
   // Update payment status based on due dates
   useEffect(() => {
@@ -223,14 +308,39 @@ function App() {
     return <AuthForm />;
   }
 
-  const loading = assetTypesLoading || assetsLoading || tenantsLoading || leasesLoading || paymentsLoading;
-
-  if (loading) {
+  // Show loading spinner only when loading and no error
+  if (anyLoading && !anyError) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error UI when there's an error and not loading
+  if (anyError && !anyLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-3 bg-red-100 rounded-full">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Failed to Load Data</h2>
+            <p className="text-gray-600 mb-6">{globalErrorMessage}</p>
+            <button
+              onClick={retryAllFetches}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center mx-auto"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
