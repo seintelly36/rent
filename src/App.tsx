@@ -343,6 +343,7 @@ function App() {
                 tenants={tenants}
                 onCollectPayment={collectPaymentWithDeposit}
                 onRefreshLeases={refetchLeases}
+                adjustLeasePeriods={adjustLeasePeriods}
               />
             } 
           />

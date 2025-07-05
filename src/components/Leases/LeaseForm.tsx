@@ -16,6 +16,7 @@ interface LeaseFormProps {
   editingLease: Lease | null;
   assets: Asset[];
   tenants: Tenant[];
+  adjustLeasePeriods?: (leaseId: string, periodNumber: number, adjustmentType: 'refund' | 'cancel') => Promise<any>;
   onSubmit: (leaseData: Omit<Lease, 'id' | 'createdAt'>) => Promise<void>;
   onClose: () => void;
 }
@@ -34,6 +35,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
   editingLease,
   assets,
   tenants,
+  adjustLeasePeriods,
   onSubmit,
   onClose,
 }) => {
@@ -229,15 +231,19 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 required
               >
                 <option value="">Select Asset</option>
-                {assets.map((asset) => (
-                  <option key={asset.id} value={asset.id} disabled={asset.status !== 'vacant'}>
-                    {asset.status !== 'vacant' ? '🔒 ' : ''}{asset.name} - {asset.address}
+                {assets.filter(asset => {
+                  // For new leases, only show vacant assets
+                  // For editing, show the current asset plus vacant assets
+                  if (!editingLease) {
+                    return asset.status === 'vacant';
+                  } else {
+                    return asset.status === 'vacant' || asset.id === editingLease.assetId;
+                  }
+                }).map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.name} - {asset.address}
                   </option>
                 ))}
-                {/* Show only vacant assets for new leases */}
-                {!editingLease && assets.filter(asset => asset.status === 'vacant').length === 0 && (
-                  <option value="" disabled>No vacant assets available</option>
-                )}
               </select>
               {!editingLease && assets.filter(asset => asset.status === 'vacant').length === 0 && (
                 <p className="text-xs text-amber-600 mt-1">
@@ -251,32 +257,13 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 Tenant
               </label>
               <select
-                required
-                value={formData.tenant_id}
-                onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Tenant</option>
-                {tenants.filter(tenant => tenant.status === 'active').map((tenant) => (
-                  <option key={tenant.id} value={tenant.id}>
-                    {tenant.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tenant
-              </label>
-              <select
                 value={formData.tenant_id}
                 onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
                 <option value="">Select Tenant</option>
-                {tenants.map((tenant) => (
+                {tenants.filter(tenant => tenant.status === 'active').map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>
                     {tenant.name}
                   </option>
@@ -326,6 +313,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
               </label>
               <input
                 type="number"
+                min="0"
                 step="0.01"
                 value={formData.rent_amount}
                 onChange={(e) => setFormData({ ...formData, rent_amount: Math.max(0, Number(e.target.value) || 0) })}
@@ -472,9 +460,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 min="0"
                 step="0.01"
                 value={formData.deposit_collected_amount}
-                onChange={(e) => setFormData({ ...formData, deposit_collected_amount: Math.max(0, Number(e.target.value) || 0) })}
+                onChange={(e) => setFormData({ ...formData, deposit_collected_amount: Math.max(0, Math.min(Number(e.target.value) || 0, formData.deposit)) })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Maximum: {formatCurrency(formData.deposit)}
+              </p>
             </div>
           )}
 

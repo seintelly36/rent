@@ -19,6 +19,7 @@ interface CollectionsProps {
     depositAmountToCollect?: number
   ) => Promise<PaymentCollectionResult>;
   onRefreshLeases: () => void;
+  adjustLeasePeriods?: (leaseId: string, periodNumber: number, adjustmentType: 'refund' | 'cancel') => Promise<any>;
 }
 
 export const Collections: React.FC<CollectionsProps> = (props) => {
@@ -70,7 +71,10 @@ export const Collections: React.FC<CollectionsProps> = (props) => {
     calculateTotalAmount,
     calculateIntervalsCovered,
     getRemainingDeposit,
-  } = useCollectionsLogic(props);
+  } = useCollectionsLogic({
+    ...props,
+    adjustLeasePeriods: props.adjustLeasePeriods,
+  });
 
   if (loading) {
     return (

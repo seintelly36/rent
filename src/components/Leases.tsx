@@ -21,9 +21,10 @@ import { convertMinutesToValueAndUnit } from '../utils/dateUtils';
 
 export const Leases: React.FC = () => {
   const { user } = useAuth();
-  const { leases, loading, addLease, updateLease, deleteLease } = useLeases(user?.id);
+  const { leases, loading, addLease, updateLease, deleteLease, adjustLeasePeriods } = useLeases(user?.id);
   const { assets } = useAssets(user?.id);
   const { tenants } = useTenants(user?.id);
+  const { updateAsset } = useAssets(user?.id);
   const { payments } = usePayments(user?.id);
   
   const [showForm, setShowForm] = useState(false);
@@ -76,14 +77,26 @@ export const Leases: React.FC = () => {
     payments,
     onDeleteLease: deleteLease,
     onUpdateLease: updateLease,
-    onUpdateAsset: async () => {}, // Placeholder - assets are managed separately
+    onUpdateAsset: updateAsset,
   });
 
   const handleSubmitLease = async (leaseData: Omit<Lease, 'id' | 'createdAt'>) => {
     if (editingLease) {
       await updateLease({ ...editingLease, ...leaseData });
     } else {
-      await addLease(leaseData);
+      const newLease = await addLease(leaseData);
+      
+      // Update asset status to occupied when creating a new lease
+      if (newLease) {
+        const asset = assets.find(a => a.id === leaseData.assetId);
+        if (asset) {
+          await updateAsset({
+            ...asset,
+            status: 'occupied',
+            tenantId: leaseData.tenantId,
+          });
+        }
+      }
     }
     setShowForm(false);
     setEditingLease(null);
@@ -117,6 +130,7 @@ export const Leases: React.FC = () => {
         </div>
         <div className="flex items-center gap-4">
           <LeaseViewToggle
+            adjustLeasePeriods={adjustLeasePeriods}
             displayMode={displayMode}
             onToggle={setDisplayMode}
           />

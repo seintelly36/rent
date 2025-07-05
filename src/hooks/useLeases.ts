@@ -1,13 +1,56 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lease } from '../types';
-import { useNotification } from './useNotification';
+import { useNotificationContext } from '../context/NotificationContext';
 
 export const useLeases = (userId: string | undefined) => {
   const [leases, setLeases] = useState<Lease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { showSuccess, showError } = useNotification();
+  const { showSuccess, showError, showWarning } = useNotificationContext();
+
+  const adjustLeasePeriods = async (leaseId: string, periodNumber: number, adjustmentType: 'refund' | 'cancel') => {
+    if (!userId) return;
+
+    try {
+      const { data, error } = await supabase.rpc('adjust_lease_periods', {
+        p_lease_id: leaseId,
+        p_period_number: periodNumber,
+        p_adjustment_type: adjustmentType,
+      });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        
+        // Update local state with the adjusted lease
+        setLeases(prev => prev.map(lease => {
+          if (lease.id === leaseId) {
+            return {
+              ...lease,
+              frequency: result.new_frequency,
+              endDate: result.new_end_date,
+            };
+          }
+          return lease;
+        }));
+
+        if (result.adjustment_applied) {
+          showSuccess(`Lease periods adjusted successfully. Frequency reduced from ${result.old_frequency} to ${result.new_frequency} periods.`);
+        } else {
+          showWarning('Cannot reduce lease frequency below 1 period.');
+        }
+
+        return result;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to adjust lease periods';
+      setError(errorMessage);
+      showError(errorMessage);
+      throw err;
+    }
+  };
 
   const fetchLeases = async () => {
     if (!userId) return;
@@ -189,6 +232,7 @@ export const useLeases = (userId: string | undefined) => {
     addLease,
     updateLease,
     deleteLease,
+    adjustLeasePeriods,
     refetch: fetchLeases,
   };
 };

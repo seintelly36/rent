@@ -15,6 +15,7 @@ interface UseCollectionsLogicProps {
     depositAmountToCollect?: number
   ) => Promise<PaymentCollectionResult>;
   onRefreshLeases: () => void;
+  adjustLeasePeriods?: (leaseId: string, periodNumber: number, adjustmentType: 'refund' | 'cancel') => Promise<any>;
 }
 
 export const useCollectionsLogic = ({
@@ -24,6 +25,7 @@ export const useCollectionsLogic = ({
   tenants,
   onCollectPayment,
   onRefreshLeases,
+  adjustLeasePeriods,
 }: UseCollectionsLogicProps) => {
   const { showSuccess, showError } = useNotification();
   
@@ -166,6 +168,23 @@ export const useCollectionsLogic = ({
       };
 
       await onCollectPayment(adjustmentPayment);
+
+      // Adjust lease periods if function is available
+      if (adjustLeasePeriods && selectedLeaseDataForAdjustment) {
+        try {
+          await adjustLeasePeriods(
+            selectedLeaseDataForAdjustment.lease.id,
+            adjustment.periodNumber,
+            adjustment.type
+          );
+          
+          // Refresh leases to get updated data
+          onRefreshLeases();
+        } catch (error) {
+          console.error('Failed to adjust lease periods:', error);
+          // Don't throw here as the payment was already recorded
+        }
+      }
 
       // Close modal and reset form
       handleClosePeriodAdjustmentModal();
