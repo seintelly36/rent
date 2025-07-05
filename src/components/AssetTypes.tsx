@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { AssetType } from '../types';
 import { formatDate, generateId } from '../utils/dateUtils';
+import { ConfirmationModal } from './ConfirmationModal';
 
 interface AssetTypesProps {
   assetTypes: AssetType[];
@@ -26,6 +27,9 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
 }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingAssetType, setEditingAssetType] = useState<AssetType | null>(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [assetTypeToDeleteId, setAssetTypeToDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -79,6 +83,33 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
     setShowForm(true);
   };
 
+  const handleDeleteClick = (assetTypeId: string) => {
+    setAssetTypeToDeleteId(assetTypeId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleConfirmDeleteAssetType = async () => {
+    if (!assetTypeToDeleteId) return;
+
+    setIsDeleting(true);
+    try {
+      await onDeleteAssetType(assetTypeToDeleteId);
+      setShowDeleteConfirmModal(false);
+      setAssetTypeToDeleteId(null);
+    } catch (error) {
+      console.error('Failed to delete asset type:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!isDeleting) {
+      setShowDeleteConfirmModal(false);
+      setAssetTypeToDeleteId(null);
+    }
+  };
+
   const addPredefinedDetail = () => {
     setFormData({
       ...formData,
@@ -112,6 +143,8 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
         return <Type className="h-4 w-4" />;
     }
   };
+
+  const assetTypeToDelete = assetTypeToDeleteId ? assetTypes.find(at => at.id === assetTypeToDeleteId) : null;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -248,6 +281,18 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
         </div>
       )}
 
+      <ConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDeleteAssetType}
+        title="Delete Asset Type"
+        message={`Are you sure you want to delete "${assetTypeToDelete?.name}"? This action cannot be undone and will also remove all associated assets, leases, and payments.`}
+        isProcessing={isDeleting}
+        confirmButtonText="Delete Asset Type"
+        confirmButtonColor="red"
+        icon={<Trash2 className="h-6 w-6 text-red-600" />}
+      />
+
       {/* Asset Types Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {assetTypes.map((assetType) => (
@@ -270,6 +315,7 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
                   </button>
                   <button
                     onClick={() => onDeleteAssetType(assetType.id)}
+                    onClick={() => handleDeleteClick(assetType.id)}
                     className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />

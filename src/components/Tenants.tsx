@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Tenant, SocialMediaEntry } from '../types';
 import { generateId } from '../utils/dateUtils';
+import { ConfirmationModal } from './ConfirmationModal';
+import { Trash2 } from 'lucide-react';
 import { 
   TenantForm, 
   TenantHeader, 
@@ -23,6 +25,9 @@ export const Tenants: React.FC<TenantsProps> = ({
 }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [tenantToDeleteId, setTenantToDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -83,6 +88,35 @@ export const Tenants: React.FC<TenantsProps> = ({
     setFormData({ ...formData, ...data });
   };
 
+  const handleDeleteClick = (tenantId: string) => {
+    setTenantToDeleteId(tenantId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleConfirmDeleteTenant = async () => {
+    if (!tenantToDeleteId) return;
+
+    setIsDeleting(true);
+    try {
+      await onDeleteTenant(tenantToDeleteId);
+      setShowDeleteConfirmModal(false);
+      setTenantToDeleteId(null);
+    } catch (error) {
+      console.error('Failed to delete tenant:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!isDeleting) {
+      setShowDeleteConfirmModal(false);
+      setTenantToDeleteId(null);
+    }
+  };
+
+  const tenantToDelete = tenantToDeleteId ? tenants.find(t => t.id === tenantToDeleteId) : null;
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <TenantHeader onAddTenant={() => setShowForm(true)} />
@@ -96,13 +130,25 @@ export const Tenants: React.FC<TenantsProps> = ({
         onClose={resetForm}
       />
 
+      <ConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDeleteTenant}
+        title="Delete Tenant"
+        message={`Are you sure you want to delete "${tenantToDelete?.name}"? This action cannot be undone and will also remove all associated leases and payments.`}
+        isProcessing={isDeleting}
+        confirmButtonText="Delete Tenant"
+        confirmButtonColor="red"
+        icon={<Trash2 className="h-6 w-6 text-red-600" />}
+      />
+
       {tenants.length === 0 ? (
         <TenantEmptyState onAddTenant={() => setShowForm(true)} />
       ) : (
         <TenantGrid
           tenants={tenants}
           onEdit={handleEdit}
-          onDelete={onDeleteTenant}
+          onDelete={handleDeleteClick}
         />
       )}
       

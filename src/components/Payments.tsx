@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Payment, Tenant, Asset } from '../types';
 import { formatCurrency, formatDateTime, isOverdue, generateId } from '../utils/dateUtils';
+import { ConfirmationModal } from './ConfirmationModal';
 
 interface PaymentsProps {
   payments: Payment[];
@@ -37,6 +38,9 @@ export const Payments: React.FC<PaymentsProps> = ({
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | Payment['status']>('all');
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [paymentToDeleteId, setPaymentToDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     tenantId: '',
     assetId: '',
@@ -145,6 +149,33 @@ export const Payments: React.FC<PaymentsProps> = ({
     });
   };
 
+  const handleDeleteClick = (paymentId: string) => {
+    setPaymentToDeleteId(paymentId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleConfirmDeletePayment = async () => {
+    if (!paymentToDeleteId) return;
+
+    setIsDeleting(true);
+    try {
+      await onDeletePayment(paymentToDeleteId);
+      setShowDeleteConfirmModal(false);
+      setPaymentToDeleteId(null);
+    } catch (error) {
+      console.error('Failed to delete payment:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!isDeleting) {
+      setShowDeleteConfirmModal(false);
+      setPaymentToDeleteId(null);
+    }
+  };
+
   const getStatusIcon = (status: Payment['status']) => {
     switch (status) {
       case 'paid':
@@ -183,6 +214,8 @@ export const Payments: React.FC<PaymentsProps> = ({
   const paidAmount = filteredPayments.filter(p => p.status === 'paid').reduce((sum, payment) => sum + payment.amount, 0);
   const pendingAmount = filteredPayments.filter(p => p.status === 'pending').reduce((sum, payment) => sum + payment.amount, 0);
   const refundedAmount = filteredPayments.filter(p => p.status === 'refunded').reduce((sum, payment) => Math.abs(payment.amount), 0);
+
+  const paymentToDelete = paymentToDeleteId ? payments.find(p => p.id === paymentToDeleteId) : null;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -453,6 +486,18 @@ export const Payments: React.FC<PaymentsProps> = ({
         </div>
       )}
 
+      <ConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDeletePayment}
+        title="Delete Payment"
+        message={`Are you sure you want to delete this payment of ${paymentToDelete ? formatCurrency(paymentToDelete.amount) : ''}? This action cannot be undone.`}
+        isProcessing={isDeleting}
+        confirmButtonText="Delete Payment"
+        confirmButtonColor="red"
+        icon={<Trash2 className="h-6 w-6 text-red-600" />}
+      />
+
       {/* Payments List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -544,6 +589,7 @@ export const Payments: React.FC<PaymentsProps> = ({
                         {payment.status === 'pending' && (
                           <button
                             onClick={() => markAsPaid(payment)}
+                            onClick={() => handleDeleteClick(payment.id)}
                             className="text-green-600 hover:text-green-800 text-sm font-medium"
                           >
                             Mark Paid
