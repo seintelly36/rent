@@ -139,7 +139,7 @@ export const useLeaseModals = ({
     } finally {
       setIsProcessingAction(false);
     }
-  }, [leaseToDelete, onDeleteLease, onUpdateAsset, assets, showSuccess, showError, closeDeleteModal]);
+  }, [leaseForAction, actionType, onUpdateLease, onUpdateAsset, assets, showSuccess, showError, closeActionModal]);
 
   // Details modal handlers
   const openDetailsModal = useCallback((lease: Lease) => {

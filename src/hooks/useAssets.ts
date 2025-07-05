@@ -71,7 +71,8 @@ export const useAssets = (userId: string | undefined) => {
         createdAt: assetData.created_at,
       };
 
-      setAssets(prev => [newAsset, ...prev]);
+      // Re-fetch all assets to ensure UI is synchronized
+      await fetchAssets();
       showSuccess(`Asset "${asset.name}" created successfully`);
       return newAsset;
     } catch (err) {
@@ -113,7 +114,8 @@ export const useAssets = (userId: string | undefined) => {
         createdAt: assetData.created_at,
       };
 
-      setAssets(prev => prev.map(a => a.id === asset.id ? updatedAsset : a));
+      // Re-fetch all assets to ensure UI is synchronized
+      await fetchAssets();
       showSuccess(`Asset "${asset.name}" updated successfully`);
       return updatedAsset;
     } catch (err) {
@@ -134,7 +136,8 @@ export const useAssets = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setAssets(prev => prev.filter(a => a.id !== id));
+      // Re-fetch all assets to ensure UI is synchronized
+      await fetchAssets();
       showSuccess('Asset deleted successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete asset';

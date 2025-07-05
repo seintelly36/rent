@@ -137,7 +137,8 @@ export const useLeases = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setLeases(prev => [newLease, ...prev]);
+      // Re-fetch all leases to ensure UI is synchronized
+      await fetchLeases();
       showSuccess('Lease created successfully');
       return newLease;
     } catch (err) {
@@ -192,7 +193,8 @@ export const useLeases = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setLeases(prev => prev.map(l => l.id === lease.id ? updatedLease : l));
+      // Re-fetch all leases to ensure UI is synchronized
+      await fetchLeases();
       showSuccess('Lease updated successfully');
       return updatedLease;
     } catch (err) {
@@ -215,7 +217,8 @@ export const useLeases = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setLeases(prev => prev.filter(l => l.id !== id));
+      // Re-fetch all leases to ensure UI is synchronized
+      await fetchLeases();
       showSuccess('Lease deleted successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete lease';

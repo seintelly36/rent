@@ -76,7 +76,8 @@ export const useTenants = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setTenants(prev => [newTenant, ...prev]);
+      // Re-fetch all tenants to ensure UI is synchronized
+      await fetchTenants();
       showSuccess(`Tenant "${tenant.name}" created successfully`);
       return newTenant;
     } catch (err) {
@@ -119,7 +120,8 @@ export const useTenants = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setTenants(prev => prev.map(t => t.id === tenant.id ? updatedTenant : t));
+      // Re-fetch all tenants to ensure UI is synchronized
+      await fetchTenants();
       showSuccess(`Tenant "${tenant.name}" updated successfully`);
       return updatedTenant;
     } catch (err) {
@@ -142,7 +144,8 @@ export const useTenants = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setTenants(prev => prev.filter(t => t.id !== id));
+      // Re-fetch all tenants to ensure UI is synchronized
+      await fetchTenants();
       showSuccess('Tenant deleted successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete tenant';

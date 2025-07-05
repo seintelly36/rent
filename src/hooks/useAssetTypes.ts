@@ -67,7 +67,8 @@ export const useAssetTypes = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setAssetTypes(prev => [newAssetType, ...prev]);
+      // Re-fetch all asset types to ensure UI is synchronized
+      await fetchAssetTypes();
       showSuccess(`Asset type "${assetType.name}" created successfully`);
       return newAssetType;
     } catch (err) {
@@ -104,7 +105,8 @@ export const useAssetTypes = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setAssetTypes(prev => prev.map(at => at.id === assetType.id ? updatedAssetType : at));
+      // Re-fetch all asset types to ensure UI is synchronized
+      await fetchAssetTypes();
       showSuccess(`Asset type "${assetType.name}" updated successfully`);
       return updatedAssetType;
     } catch (err) {
@@ -127,7 +129,8 @@ export const useAssetTypes = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setAssetTypes(prev => prev.filter(at => at.id !== id));
+      // Re-fetch all asset types to ensure UI is synchronized
+      await fetchAssetTypes();
       showSuccess('Asset type deleted successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete asset type';

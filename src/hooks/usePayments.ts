@@ -85,7 +85,8 @@ export const usePayments = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setPayments(prev => [newPayment, ...prev]);
+      // Re-fetch all payments to ensure UI is synchronized
+      await fetchPayments();
       showSuccess('Payment added successfully');
       return newPayment;
     } catch (err) {
@@ -142,7 +143,8 @@ export const usePayments = (userId: string | undefined) => {
       };
 
       // Update local payments state
-      setPayments(prev => [newPayment, ...prev]);
+      // Re-fetch all payments to ensure UI is synchronized
+      await fetchPayments();
 
       showSuccess('Payment collected successfully');
       return {
@@ -198,7 +200,8 @@ export const usePayments = (userId: string | undefined) => {
         createdAt: data.created_at,
       };
 
-      setPayments(prev => prev.map(p => p.id === payment.id ? updatedPayment : p));
+      // Re-fetch all payments to ensure UI is synchronized
+      await fetchPayments();
       showSuccess('Payment updated successfully');
       return updatedPayment;
     } catch (err) {
@@ -221,7 +224,8 @@ export const usePayments = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setPayments(prev => prev.filter(p => p.id !== id));
+      // Re-fetch all payments to ensure UI is synchronized
+      await fetchPayments();
       showSuccess('Payment deleted successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete payment';
