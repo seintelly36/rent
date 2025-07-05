@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Asset } from '../types';
-import { AssetForm, AssetHeader, AssetGrid, AssetEmptyState } from './Assets';
+import { AssetForm, AssetHeader, AssetGrid, AssetEmptyState } from './Assets/index';
 
 interface AssetsProps {
   assets: Asset[];
