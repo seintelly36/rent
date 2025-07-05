@@ -138,15 +138,11 @@ export const Payments: React.FC<PaymentsProps> = ({
   };
 
   const markAsPaid = (payment: Payment) => {
-    try {
-      onUpdatePayment({
+    onUpdatePayment({
       ...payment,
       status: 'paid',
       paidDate: new Date().toISOString(),
-      });
-    } catch (error) {
-      // Error handling is done in the hook
-    }
+    });
   };
 
   const getStatusIcon = (status: Payment['status']) => {
@@ -561,13 +557,6 @@ export const Payments: React.FC<PaymentsProps> = ({
                         </button>
                         <button
                           onClick={() => onDeletePayment(payment.id)}
-                         onClick={() => {
-                           try {
-                             onDeletePayment(payment.id);
-                           } catch (error) {
-                             // Error handling is done in the hook
-                           }
-                         }}
                           className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />

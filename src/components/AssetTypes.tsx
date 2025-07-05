@@ -79,14 +79,6 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await onDeleteAssetType(id);
-    } catch (error) {
-      // Error handling is done in the hook
-    }
-  };
-
   const addPredefinedDetail = () => {
     setFormData({
       ...formData,
@@ -278,7 +270,6 @@ export const AssetTypes: React.FC<AssetTypesProps> = ({
                   </button>
                   <button
                     onClick={() => onDeleteAssetType(assetType.id)}
-                    onClick={() => handleDelete(assetType.id)}
                     className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
