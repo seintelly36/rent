@@ -322,8 +322,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                     setFormData({ ...formData, rent_amount: 0 });
                     return;
                   }
-                  const value = Number(inputValue);
-                  const roundedValue = Math.max(0, Math.round(value * 100) / 100);
+                  const parsedValue = parseFloat(inputValue);
+                  if (isNaN(parsedValue)) {
+                    setFormData({ ...formData, rent_amount: 0 });
+                    return;
+                  }
+                  const roundedValue = Math.max(0, parseFloat(parsedValue.toFixed(2)));
                   setFormData({ ...formData, rent_amount: roundedValue });
                 }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -346,8 +350,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                     setFormData({ ...formData, deposit: 0 });
                     return;
                   }
-                  const value = Number(inputValue);
-                  const roundedValue = Math.max(0, Math.round(value * 100) / 100);
+                  const parsedValue = parseFloat(inputValue);
+                  if (isNaN(parsedValue)) {
+                    setFormData({ ...formData, deposit: 0 });
+                    return;
+                  }
+                  const roundedValue = Math.max(0, parseFloat(parsedValue.toFixed(2)));
                   setFormData({ ...formData, deposit: roundedValue });
                 }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -484,8 +492,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                     setFormData({ ...formData, deposit_collected_amount: 0 });
                     return;
                   }
-                  const value = Number(inputValue);
-                  const roundedValue = Math.max(0, Math.round(value * 100) / 100);
+                  const parsedValue = parseFloat(inputValue);
+                  if (isNaN(parsedValue)) {
+                    setFormData({ ...formData, deposit_collected_amount: 0 });
+                    return;
+                  }
+                  const roundedValue = Math.max(0, parseFloat(parsedValue.toFixed(2)));
                   const clampedValue = Math.min(roundedValue, formData.deposit);
                   setFormData({ ...formData, deposit_collected_amount: clampedValue });
                 }}
