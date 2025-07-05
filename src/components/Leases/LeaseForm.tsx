@@ -45,14 +45,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
     tenant_id: '',
     start_date: '',
     end_date: '',
-    rent_amount: 0,
-    deposit: 0,
+    rent_amount: 0 as number,
+    deposit: 0 as number,
     lease_type: 'fixed_term' as 'fixed_term' | 'month_to_month',
     chargePeriodValue: defaultChargePeriod.value,
     chargePeriodUnit: defaultChargePeriod.unit,
     frequency: 1,
     deposit_collected: false,
-    deposit_collected_amount: 0,
+    deposit_collected_amount: 0 as number,
     notes: ''
   });
 
@@ -106,14 +106,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: editingLease.tenantId,
         start_date: new Date(editingLease.startDate).toISOString().slice(0, 16),
         end_date: editingLease.endDate,
-        rent_amount: editingLease.rentAmount,
-        deposit: editingLease.deposit,
+        rent_amount: Number(editingLease.rentAmount),
+        deposit: Number(editingLease.deposit),
         lease_type: editingLease.leaseType,
         chargePeriodValue: value,
         chargePeriodUnit: unit,
         frequency: editingLease.frequency,
         deposit_collected: editingLease.depositCollectedAmount ? editingLease.depositCollectedAmount > 0 : false,
-        deposit_collected_amount: editingLease.depositCollectedAmount || 0,
+        deposit_collected_amount: Number(editingLease.depositCollectedAmount || 0),
         notes: editingLease.notes || ''
       });
       setCalculatedEndDate(new Date(editingLease.endDate).toISOString().slice(0, 16));
@@ -124,14 +124,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: '',
         start_date: '',
         end_date: '',
-        rent_amount: 0,
-        deposit: 0,
+        rent_amount: 0 as number,
+        deposit: 0 as number,
         lease_type: 'fixed_term',
         chargePeriodValue: defaultChargePeriod.value,
         chargePeriodUnit: defaultChargePeriod.unit,
         frequency: 1,
         deposit_collected: false,
-        deposit_collected_amount: 0,
+        deposit_collected_amount: 0 as number,
         notes: ''
       });
       setCalculatedEndDate('');
@@ -158,19 +158,19 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
       return;
     }
 
-    if (!formData.rent_amount || formData.rent_amount <= 0) {
+    if (formData.rent_amount <= 0) {
       alert('Please enter a valid rent amount');
       return;
     }
 
-    const depositAmount = formData.deposit || 0;
+    const depositAmount = formData.deposit;
     if (depositAmount < 0) {
       alert('Please enter a valid deposit amount');
       return;
     }
 
     const depositCollectedAmount = formData.deposit_collected 
-      ? Math.max(0, formData.deposit_collected_amount || 0)
+      ? Math.max(0, formData.deposit_collected_amount)
       : 0;
 
     try {
@@ -181,7 +181,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenantId: formData.tenant_id,
         startDate: formData.start_date,
         endDate: formData.end_date,
-        rentAmount: formData.rent_amount,
+        rentAmount: Number(formData.rent_amount),
         deposit: depositAmount,
         leaseType: formData.lease_type,
         chargePeriodMinutes: chargePeriodMinutes,
@@ -317,7 +317,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 step="0.01"
                 value={formData.rent_amount}
                 onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
+                  const inputValue = e.target.value;
+                  if (inputValue === '') {
+                    setFormData({ ...formData, rent_amount: 0 });
+                    return;
+                  }
+                  const value = Number(inputValue);
                   const roundedValue = Math.max(0, Math.round(value * 100) / 100);
                   setFormData({ ...formData, rent_amount: roundedValue });
                 }}
@@ -336,7 +341,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 step="0.01"
                 value={formData.deposit}
                 onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
+                  const inputValue = e.target.value;
+                  if (inputValue === '') {
+                    setFormData({ ...formData, deposit: 0 });
+                    return;
+                  }
+                  const value = Number(inputValue);
                   const roundedValue = Math.max(0, Math.round(value * 100) / 100);
                   setFormData({ ...formData, deposit: roundedValue });
                 }}
@@ -469,7 +479,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 step="0.01"
                 value={formData.deposit_collected_amount}
                 onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
+                  const inputValue = e.target.value;
+                  if (inputValue === '') {
+                    setFormData({ ...formData, deposit_collected_amount: 0 });
+                    return;
+                  }
+                  const value = Number(inputValue);
                   const roundedValue = Math.max(0, Math.round(value * 100) / 100);
                   const clampedValue = Math.min(roundedValue, formData.deposit);
                   setFormData({ ...formData, deposit_collected_amount: clampedValue });
