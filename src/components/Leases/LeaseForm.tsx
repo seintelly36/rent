@@ -102,14 +102,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: editingLease.tenantId,
         start_date: new Date(editingLease.startDate).toISOString().slice(0, 16),
         end_date: editingLease.endDate,
-        rent_amount: editingLease.rentAmount,
-        deposit: editingLease.deposit,
+        rent_amount: parseFloat(editingLease.rentAmount.toFixed(2)),
+        deposit: parseFloat(editingLease.deposit.toFixed(2)),
         lease_type: editingLease.leaseType,
         chargePeriodValue: value,
         chargePeriodUnit: unit,
         frequency: editingLease.frequency,
         deposit_collected: editingLease.depositCollectedAmount ? editingLease.depositCollectedAmount > 0 : false,
-        deposit_collected_amount: editingLease.depositCollectedAmount || 0,
+        deposit_collected_amount: parseFloat((editingLease.depositCollectedAmount || 0).toFixed(2)),
         notes: editingLease.notes || ''
       });
       setCalculatedEndDate(new Date(editingLease.endDate).toISOString().slice(0, 16));

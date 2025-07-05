@@ -28,10 +28,13 @@ export const LeaseFinancials: React.FC<LeaseFinancialsProps> = ({
     }
     
     let preciseValue = Math.max(0, numericValue);
+    // Round to 2 decimal places to prevent floating-point precision errors
+    preciseValue = parseFloat(preciseValue.toFixed(2));
     
     // Special handling for deposit collected amount
     if (field === 'deposit_collected_amount') {
-      preciseValue = Math.min(preciseValue, formData.deposit);
+      const roundedDeposit = parseFloat(formData.deposit.toFixed(2));
+      preciseValue = Math.min(preciseValue, roundedDeposit);
     }
     
     onFormDataChange({ [field]: preciseValue });
