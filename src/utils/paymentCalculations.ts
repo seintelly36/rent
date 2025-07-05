@@ -27,6 +27,13 @@ export const calculateCollectionData = (
   const totalPayments = leasePayments.reduce((sum, payment) => sum + payment.amount, 0);
   const totalPeriodsPaid = totalPayments / lease.rentAmount;
 
+  // Debug logging for collections
+  console.log('Collection calculation for lease:', lease.id);
+  console.log('- Lease payments found:', leasePayments.length);
+  console.log('- Total payments amount:', totalPayments);
+  console.log('- Rent amount:', lease.rentAmount);
+  console.log('- Total periods paid:', totalPeriodsPaid);
+
   // Determine current period based on current date
   let currentPeriod = 0;
   for (let i = 0; i < intervals.length; i++) {
@@ -37,6 +44,9 @@ export const calculateCollectionData = (
       break;
     }
   }
+
+  console.log('- Current period:', currentPeriod);
+  console.log('- Intervals generated:', intervals.length);
 
   // Create collection intervals with payment status
   const collectionIntervals: CollectionInterval[] = intervals.map((interval, index) => {
@@ -59,6 +69,10 @@ export const calculateCollectionData = (
   // Calculate periods to collect and amount
   const periodsToCollect = Math.max(0, currentPeriod - totalPeriodsPaid);
   const amountToCollect = periodsToCollect * lease.rentAmount;
+
+  console.log('- Periods to collect:', periodsToCollect);
+  console.log('- Amount to collect:', amountToCollect);
+  console.log('- Is active:', isActive);
 
   // Check if lease is active
   const isActive = lease.status === 'active' && new Date(lease.endDate) > currentDate;

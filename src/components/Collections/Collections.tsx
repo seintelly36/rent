@@ -164,12 +164,23 @@ export const Collections: React.FC<CollectionsProps> = (props) => {
         <div className="text-center py-12">
           <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No collections found</h3>
-          <p className="text-gray-500 mb-4">
+          <div className="text-gray-500 mb-4 space-y-2">
             {searchTerm || statusFilter !== 'all' 
               ? 'Try adjusting your search or filter criteria'
               : 'No active leases require collection at this time'
             }
-          </p>
+            {!searchTerm && statusFilter === 'all' && (
+              <div className="text-sm bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <p className="font-medium text-blue-900 mb-2">To see collections, you need:</p>
+                <ul className="text-blue-800 space-y-1 text-left">
+                  <li>• Active leases with status 'active'</li>
+                  <li>• Leases with start dates in the past</li>
+                  <li>• Rent amounts greater than zero</li>
+                  <li>• At least one payment period that has elapsed</li>
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
