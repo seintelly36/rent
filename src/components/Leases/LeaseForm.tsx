@@ -259,7 +259,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 <option value="">Select Tenant</option>
                 {tenants.filter(tenant => tenant.status === 'active').map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>
-                    {asset.name} - {asset.address}
+                    {tenant.name}
                   </option>
                 ))}
               </select>
