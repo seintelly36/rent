@@ -43,14 +43,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
     tenant_id: '',
     start_date: '',
     end_date: '',
-    rent_amount: '',
-    deposit: '',
+    rent_amount: 0,
+    deposit: 0,
     lease_type: 'fixed_term' as 'fixed_term' | 'month_to_month',
     chargePeriodValue: defaultChargePeriod.value,
     chargePeriodUnit: defaultChargePeriod.unit,
     frequency: 1,
     deposit_collected: false,
-    deposit_collected_amount: '',
+    deposit_collected_amount: 0,
     notes: ''
   });
 
@@ -104,14 +104,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: editingLease.tenantId,
         start_date: new Date(editingLease.startDate).toISOString().slice(0, 16),
         end_date: editingLease.endDate,
-        rent_amount: editingLease.rentAmount.toString(),
-        deposit: editingLease.deposit.toString(),
+        rent_amount: editingLease.rentAmount,
+        deposit: editingLease.deposit,
         lease_type: editingLease.leaseType,
         chargePeriodValue: value,
         chargePeriodUnit: unit,
         frequency: editingLease.frequency,
         deposit_collected: editingLease.depositCollectedAmount ? editingLease.depositCollectedAmount > 0 : false,
-        deposit_collected_amount: (editingLease.depositCollectedAmount || 0).toString(),
+        deposit_collected_amount: editingLease.depositCollectedAmount || 0,
         notes: editingLease.notes || ''
       });
       setCalculatedEndDate(new Date(editingLease.endDate).toISOString().slice(0, 16));
@@ -122,14 +122,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: '',
         start_date: '',
         end_date: '',
-        rent_amount: '',
-        deposit: '',
+        rent_amount: 0,
+        deposit: 0,
         lease_type: 'fixed_term',
         chargePeriodValue: defaultChargePeriod.value,
         chargePeriodUnit: defaultChargePeriod.unit,
         frequency: 1,
         deposit_collected: false,
-        deposit_collected_amount: '',
+        deposit_collected_amount: 0,
         notes: ''
       });
       setCalculatedEndDate('');
@@ -156,19 +156,19 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
       return;
     }
 
-    if (!formData.rent_amount || parseFloat(formData.rent_amount) <= 0) {
+    if (!formData.rent_amount || formData.rent_amount <= 0) {
       alert('Please enter a valid rent amount');
       return;
     }
 
-    const depositAmount = parseFloat(formData.deposit) || 0;
+    const depositAmount = formData.deposit || 0;
     if (depositAmount < 0) {
       alert('Please enter a valid deposit amount');
       return;
     }
 
     const depositCollectedAmount = formData.deposit_collected 
-      ? Math.max(0, parseFloat(formData.deposit_collected_amount) || 0)
+      ? Math.max(0, formData.deposit_collected_amount || 0)
       : 0;
 
     try {
@@ -179,7 +179,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenantId: formData.tenant_id,
         startDate: formData.start_date,
         endDate: formData.end_date,
-        rentAmount: parseFloat(formData.rent_amount),
+        rentAmount: formData.rent_amount,
         deposit: depositAmount,
         leaseType: formData.lease_type,
         chargePeriodMinutes: chargePeriodMinutes,
@@ -292,7 +292,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 type="number"
                 step="0.01"
                 value={formData.rent_amount}
-                onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, rent_amount: Math.max(0, Number(e.target.value) || 0) })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -304,9 +304,10 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
               </label>
               <input
                 type="number"
+                min="0"
                 step="0.01"
                 value={formData.deposit}
-                onChange={(e) => setFormData({ ...formData, deposit: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, deposit: Math.max(0, Number(e.target.value) || 0) })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -403,9 +404,9 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
               </div>
               <div className="mt-3 text-sm text-green-700">
                 <strong>Total:</strong> {calculatedIntervals.length} payment periods
-                {formData.rent_amount && (
+                {formData.rent_amount > 0 && (
                   <span className="ml-2">
-                    • <strong>Total Amount:</strong> {formatCurrency(parseFloat(formData.rent_amount) * calculatedIntervals.length)}
+                    <strong>Total Amount:</strong> {formatCurrency(formData.rent_amount * calculatedIntervals.length)}
                   </span>
                 )}
               </div>
@@ -434,14 +435,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
-                max={formData.deposit}
+                max={formData.deposit || 0}
                 value={formData.deposit_collected_amount}
-                onChange={(e) => setFormData({ ...formData, deposit_collected_amount: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, deposit_collected_amount: Math.min(Math.max(0, Number(e.target.value) || 0), formData.deposit || 0) })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Maximum: {formData.deposit ? formatCurrency(parseFloat(formData.deposit)) : '$0.00'}
+                Maximum: {formatCurrency(formData.deposit || 0)}
               </p>
             </div>
           )}

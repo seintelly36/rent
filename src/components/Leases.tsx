@@ -17,6 +17,7 @@ import { LeaseDeleteConfirmationModal } from './Leases/LeaseDeleteConfirmationMo
 import { LeaseFilters } from './Leases/LeaseFilters';
 import { useLeaseFilters } from '../hooks/useLeaseFilters';
 import { useLeaseModals } from '../hooks/useLeaseModals';
+import { convertMinutesToValueAndUnit } from '../utils/dateUtils';
 
 export const Leases: React.FC = () => {
   const { user } = useAuth();
