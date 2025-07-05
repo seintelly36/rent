@@ -463,6 +463,19 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
           </div>
 
           {formData.deposit_collected && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Deposit Collected Amount
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.deposit_collected_amount}
+                onChange={(e) => setFormData({ ...formData, deposit_collected_amount: Math.max(0, Number(e.target.value) || 0) })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
           )}
 
           <div>
