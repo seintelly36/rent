@@ -79,6 +79,7 @@ function App() {
     updateLease,
     deleteLease,
     refetch: refetchLeases,
+    refetch: refetchLeases,
     adjustLeasePeriods,
   } = useLeases(user?.id);
 
