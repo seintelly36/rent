@@ -54,15 +54,19 @@ export const useAssets = (userId: string | undefined) => {
 
       if (error) throw error;
 
+      // RPC functions return arrays, so we need to access the first element
+      const assetData = data[0];
+      if (!assetData) throw new Error('No data returned from add_user_asset');
+
       const newAsset: Asset = {
-        id: data.id,
-        name: data.name,
-        address: data.address,
-        assetTypeId: data.asset_type_id,
-        details: data.details || [],
-        tenantId: data.tenant_id || undefined,
-        status: data.status,
-        createdAt: data.created_at,
+        id: assetData.id,
+        name: assetData.name,
+        address: assetData.address,
+        assetTypeId: assetData.asset_type_id,
+        details: assetData.details || [],
+        tenantId: assetData.tenant_id || undefined,
+        status: assetData.status,
+        createdAt: assetData.created_at,
       };
 
       setAssets(prev => [newAsset, ...prev]);
@@ -89,15 +93,19 @@ export const useAssets = (userId: string | undefined) => {
 
       if (error) throw error;
 
+      // RPC functions return arrays, so we need to access the first element
+      const assetData = data[0];
+      if (!assetData) throw new Error('No data returned from update_user_asset');
+
       const updatedAsset: Asset = {
-        id: data.id,
-        name: data.name,
-        address: data.address,
-        assetTypeId: data.asset_type_id,
-        details: data.details || [],
-        tenantId: data.tenant_id || undefined,
-        status: data.status,
-        createdAt: data.created_at,
+        id: assetData.id,
+        name: assetData.name,
+        address: assetData.address,
+        assetTypeId: assetData.asset_type_id,
+        details: assetData.details || [],
+        tenantId: assetData.tenant_id || undefined,
+        status: assetData.status,
+        createdAt: assetData.created_at,
       };
 
       setAssets(prev => prev.map(a => a.id === asset.id ? updatedAsset : a));
