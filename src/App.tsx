@@ -73,6 +73,10 @@ function App() {
   } = useLeases(user?.id);
 
   const {
+    adjustLeasePeriods,
+  } = useLeases(user?.id);
+
+  const {
     payments,
     loading: paymentsLoading,
     addPayment,
