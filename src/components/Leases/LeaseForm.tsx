@@ -316,7 +316,11 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 min="0"
                 step="0.01"
                 value={formData.rent_amount}
-                onChange={(e) => setFormData({ ...formData, rent_amount: Math.max(0, Number(e.target.value) || 0) })}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  const roundedValue = Math.max(0, Math.round(value * 100) / 100);
+                  setFormData({ ...formData, rent_amount: roundedValue });
+                }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -331,7 +335,11 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 min="0"
                 step="0.01"
                 value={formData.deposit}
-                onChange={(e) => setFormData({ ...formData, deposit: Math.max(0, Number(e.target.value) || 0) })}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  const roundedValue = Math.max(0, Math.round(value * 100) / 100);
+                  setFormData({ ...formData, deposit: roundedValue });
+                }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -460,7 +468,12 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                 min="0"
                 step="0.01"
                 value={formData.deposit_collected_amount}
-                onChange={(e) => setFormData({ ...formData, deposit_collected_amount: Math.max(0, Math.min(Number(e.target.value) || 0, formData.deposit)) })}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  const roundedValue = Math.max(0, Math.round(value * 100) / 100);
+                  const clampedValue = Math.min(roundedValue, formData.deposit);
+                  setFormData({ ...formData, deposit_collected_amount: clampedValue });
+                }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <p className="text-xs text-gray-500 mt-1">
