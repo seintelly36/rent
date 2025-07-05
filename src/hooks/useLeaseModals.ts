@@ -73,6 +73,16 @@ export const useLeaseModals = ({
 
     setIsDeleting(true);
     try {
+      // Update asset status to vacant before deleting the lease
+      const asset = assets.find(a => a.id === leaseToDelete.assetId);
+      if (asset) {
+        await onUpdateAsset({
+          ...asset,
+          status: 'vacant',
+          tenantId: undefined,
+        });
+      }
+
       await onDeleteLease(leaseToDelete.id);
       showSuccess('Lease deleted successfully');
       closeDeleteModal();
@@ -129,7 +139,7 @@ export const useLeaseModals = ({
     } finally {
       setIsProcessingAction(false);
     }
-  }, [leaseForAction, actionType, onUpdateLease, onUpdateAsset, assets, closeActionModal]);
+  }, [leaseToDelete, onDeleteLease, onUpdateAsset, assets, showSuccess, showError, closeDeleteModal]);
 
   // Details modal handlers
   const openDetailsModal = useCallback((lease: Lease) => {
