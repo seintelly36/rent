@@ -40,23 +40,26 @@ export const Assets: React.FC<AssetsProps> = ({
 
   const selectedAssetType = assetTypes.find(at => at.id === formData.assetTypeId);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingAsset) {
-      onUpdateAsset({
-        ...editingAsset,
-        ...formData,
-      });
-    } else {
-      onAddAsset({
-        id: generateId(),
-        ...formData,
-        createdAt: new Date().toISOString(),
-      });
+    try {
+      if (editingAsset) {
+        await onUpdateAsset({
+          ...editingAsset,
+          ...formData,
+        });
+      } else {
+        await onAddAsset({
+          ...formData,
+        });
+      }
+      
+      resetForm();
+    } catch (error) {
+      console.error('Error saving asset:', error);
+      // You might want to show an error message to the user here
     }
-    
-    resetForm();
   };
 
   const resetForm = () => {
