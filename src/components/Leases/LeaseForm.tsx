@@ -181,7 +181,7 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenantId: formData.tenant_id,
         startDate: formData.start_date,
         endDate: formData.end_date,
-        rentAmount: Number(formData.rent_amount),
+        rentAmount: formData.rent_amount,
         deposit: depositAmount,
         leaseType: formData.lease_type,
         chargePeriodMinutes: chargePeriodMinutes,
@@ -322,13 +322,15 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                     setFormData({ ...formData, rent_amount: 0 });
                     return;
                   }
-                  const parsedValue = parseFloat(inputValue);
-                  if (isNaN(parsedValue)) {
+                  // Handle the input as string first, then convert to number
+                  const numericValue = parseFloat(inputValue);
+                  if (isNaN(numericValue)) {
                     setFormData({ ...formData, rent_amount: 0 });
                     return;
                   }
-                  const roundedValue = Math.max(0, parseFloat(parsedValue.toFixed(2)));
-                  setFormData({ ...formData, rent_amount: roundedValue });
+                  // Ensure precision by using the exact input value
+                  const preciseValue = Math.max(0, numericValue);
+                  setFormData({ ...formData, rent_amount: preciseValue });
                 }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
@@ -350,13 +352,15 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                     setFormData({ ...formData, deposit: 0 });
                     return;
                   }
-                  const parsedValue = parseFloat(inputValue);
-                  if (isNaN(parsedValue)) {
+                  // Handle the input as string first, then convert to number
+                  const numericValue = parseFloat(inputValue);
+                  if (isNaN(numericValue)) {
                     setFormData({ ...formData, deposit: 0 });
                     return;
                   }
-                  const roundedValue = Math.max(0, parseFloat(parsedValue.toFixed(2)));
-                  setFormData({ ...formData, deposit: roundedValue });
+                  // Ensure precision by using the exact input value
+                  const preciseValue = Math.max(0, numericValue);
+                  setFormData({ ...formData, deposit: preciseValue });
                 }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
@@ -492,13 +496,15 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
                     setFormData({ ...formData, deposit_collected_amount: 0 });
                     return;
                   }
-                  const parsedValue = parseFloat(inputValue);
-                  if (isNaN(parsedValue)) {
+                  // Handle the input as string first, then convert to number
+                  const numericValue = parseFloat(inputValue);
+                  if (isNaN(numericValue)) {
                     setFormData({ ...formData, deposit_collected_amount: 0 });
                     return;
                   }
-                  const roundedValue = Math.max(0, parseFloat(parsedValue.toFixed(2)));
-                  const clampedValue = Math.min(roundedValue, formData.deposit);
+                  // Ensure precision and clamp to deposit amount
+                  const preciseValue = Math.max(0, numericValue);
+                  const clampedValue = Math.min(preciseValue, formData.deposit);
                   setFormData({ ...formData, deposit_collected_amount: clampedValue });
                 }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
