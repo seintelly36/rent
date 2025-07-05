@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Lease, Payment, Asset, Tenant, LeaseCollectionData, PaymentCollectionResult, PeriodAdjustment } from '../types';
 import { useCollections } from './useCollections';
+import { useNotification } from './useNotification';
 import { generateId } from '../utils/dateUtils';
 
 interface UseCollectionsLogicProps {
@@ -24,6 +25,8 @@ export const useCollectionsLogic = ({
   onCollectPayment,
   onRefreshLeases,
 }: UseCollectionsLogicProps) => {
+  const { showSuccess, showError } = useNotification();
+  
   // Filter and search state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'overdue'>('all');
@@ -121,9 +124,10 @@ export const useCollectionsLogic = ({
 
       // Close modal and reset form
       handleClosePaymentModal();
+      showSuccess('Payment collected successfully');
     } catch (error) {
-      console.error('Failed to collect payment:', error);
-      // You might want to show an error message to the user here
+      const errorMessage = error instanceof Error ? error.message : 'Failed to collect payment';
+      showError(errorMessage);
     } finally {
       setIsSubmittingPayment(false);
     }
@@ -165,9 +169,10 @@ export const useCollectionsLogic = ({
 
       // Close modal and reset form
       handleClosePeriodAdjustmentModal();
+      showSuccess(`Period ${adjustment.type} processed successfully`);
     } catch (error) {
-      console.error('Failed to process period adjustment:', error);
-      // You might want to show an error message to the user here
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process period adjustment';
+      showError(errorMessage);
     } finally {
       setIsSubmittingAdjustment(false);
     }

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Tenant } from '../types';
+import { useNotification } from './useNotification';
 
 export const useTenants = (userId: string | undefined) => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   const fetchTenants = async () => {
     if (!userId) return;
@@ -75,9 +77,12 @@ export const useTenants = (userId: string | undefined) => {
       };
 
       setTenants(prev => [newTenant, ...prev]);
+      showSuccess(`Tenant "${tenant.name}" created successfully`);
       return newTenant;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add tenant');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add tenant';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -115,9 +120,12 @@ export const useTenants = (userId: string | undefined) => {
       };
 
       setTenants(prev => prev.map(t => t.id === tenant.id ? updatedTenant : t));
+      showSuccess(`Tenant "${tenant.name}" updated successfully`);
       return updatedTenant;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update tenant');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update tenant';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -135,8 +143,11 @@ export const useTenants = (userId: string | undefined) => {
       if (error) throw error;
 
       setTenants(prev => prev.filter(t => t.id !== id));
+      showSuccess('Tenant deleted successfully');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete tenant');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete tenant';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };

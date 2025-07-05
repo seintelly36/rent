@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Lease, Asset, Tenant, Payment, LeaseCollectionData } from '../types';
 import { getLeaseCollectionDataForLease } from '../utils/paymentCalculations';
+import { useNotification } from './useNotification';
 
 interface UseLeaseModalsProps {
   assets: Asset[];
@@ -19,6 +20,8 @@ export const useLeaseModals = ({
   onUpdateLease,
   onUpdateAsset,
 }: UseLeaseModalsProps) => {
+  const { showSuccess, showError } = useNotification();
+  
   // Delete confirmation modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [leaseToDelete, setLeaseToDelete] = useState<Lease | null>(null);
@@ -71,10 +74,11 @@ export const useLeaseModals = ({
     setIsDeleting(true);
     try {
       await onDeleteLease(leaseToDelete.id);
+      showSuccess('Lease deleted successfully');
       closeDeleteModal();
     } catch (error) {
-      console.error('Failed to delete lease:', error);
-      // You might want to show an error message to the user here
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete lease';
+      showError(errorMessage);
     } finally {
       setIsDeleting(false);
     }
@@ -117,10 +121,11 @@ export const useLeaseModals = ({
         await onUpdateAsset(updatedAsset);
       }
 
+      showSuccess(`Lease ${actionType === 'terminate' ? 'terminated' : 'marked as expired'} successfully`);
       closeActionModal();
     } catch (error) {
-      console.error(`Failed to ${actionType} lease:`, error);
-      // You might want to show an error message to the user here
+      const errorMessage = error instanceof Error ? error.message : `Failed to ${actionType} lease`;
+      showError(errorMessage);
     } finally {
       setIsProcessingAction(false);
     }

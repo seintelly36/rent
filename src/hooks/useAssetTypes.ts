@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { AssetType } from '../types';
+import { useNotification } from './useNotification';
 
 export const useAssetTypes = (userId: string | undefined) => {
   const [assetTypes, setAssetTypes] = useState<AssetType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   const fetchAssetTypes = async () => {
     if (!userId) return;
@@ -66,9 +68,12 @@ export const useAssetTypes = (userId: string | undefined) => {
       };
 
       setAssetTypes(prev => [newAssetType, ...prev]);
+      showSuccess(`Asset type "${assetType.name}" created successfully`);
       return newAssetType;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add asset type');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add asset type';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -100,9 +105,12 @@ export const useAssetTypes = (userId: string | undefined) => {
       };
 
       setAssetTypes(prev => prev.map(at => at.id === assetType.id ? updatedAssetType : at));
+      showSuccess(`Asset type "${assetType.name}" updated successfully`);
       return updatedAssetType;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update asset type');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update asset type';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -120,8 +128,11 @@ export const useAssetTypes = (userId: string | undefined) => {
       if (error) throw error;
 
       setAssetTypes(prev => prev.filter(at => at.id !== id));
+      showSuccess('Asset type deleted successfully');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete asset type');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete asset type';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };

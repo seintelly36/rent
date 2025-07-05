@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lease } from '../types';
+import { useNotification } from './useNotification';
 
 export const useLeases = (userId: string | undefined) => {
   const [leases, setLeases] = useState<Lease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   const fetchLeases = async () => {
     if (!userId) return;
@@ -93,9 +95,12 @@ export const useLeases = (userId: string | undefined) => {
       };
 
       setLeases(prev => [newLease, ...prev]);
+      showSuccess('Lease created successfully');
       return newLease;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add lease');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add lease';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -145,9 +150,12 @@ export const useLeases = (userId: string | undefined) => {
       };
 
       setLeases(prev => prev.map(l => l.id === lease.id ? updatedLease : l));
+      showSuccess('Lease updated successfully');
       return updatedLease;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update lease');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update lease';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -165,8 +173,11 @@ export const useLeases = (userId: string | undefined) => {
       if (error) throw error;
 
       setLeases(prev => prev.filter(l => l.id !== id));
+      showSuccess('Lease deleted successfully');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete lease');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete lease';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };

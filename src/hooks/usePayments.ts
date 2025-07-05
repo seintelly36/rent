@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Payment, PaymentCollectionResult } from '../types';
+import { useNotification } from './useNotification';
 
 export const usePayments = (userId: string | undefined) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   const fetchPayments = async () => {
     if (!userId) return;
@@ -84,9 +86,12 @@ export const usePayments = (userId: string | undefined) => {
       };
 
       setPayments(prev => [newPayment, ...prev]);
+      showSuccess('Payment added successfully');
       return newPayment;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add payment');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add payment';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -139,6 +144,7 @@ export const usePayments = (userId: string | undefined) => {
       // Update local payments state
       setPayments(prev => [newPayment, ...prev]);
 
+      showSuccess('Payment collected successfully');
       return {
         paymentId: result.payment_id,
         paymentAmount: result.payment_amount,
@@ -147,7 +153,9 @@ export const usePayments = (userId: string | undefined) => {
         newDepositCollectedAmount: result.new_deposit_collected_amount,
       };
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to collect payment');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to collect payment';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -191,9 +199,12 @@ export const usePayments = (userId: string | undefined) => {
       };
 
       setPayments(prev => prev.map(p => p.id === payment.id ? updatedPayment : p));
+      showSuccess('Payment updated successfully');
       return updatedPayment;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update payment');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update payment';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -211,8 +222,11 @@ export const usePayments = (userId: string | undefined) => {
       if (error) throw error;
 
       setPayments(prev => prev.filter(p => p.id !== id));
+      showSuccess('Payment deleted successfully');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete payment');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete payment';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
@@ -229,7 +243,9 @@ export const usePayments = (userId: string | undefined) => {
 
       return data && data.length > 0 ? data[0] : null;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get lease payment summary');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get lease payment summary';
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
