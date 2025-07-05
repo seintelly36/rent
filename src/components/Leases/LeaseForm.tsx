@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Lease, Asset, Tenant } from '../../types';
 import { 
   convertMinutesToValueAndUnit, 
   convertDurationToMinutes, 
-  formatMinutesToDuration, 
-  formatCurrency, 
-  formatDateTime,
   calculateLeaseEndDate,
   generatePaymentIntervals
 } from '../../utils/dateUtils';
+import {
+  LeaseBasicInfo,
+  LeaseDates,
+  LeaseFinancials,
+  LeaseChargePeriod,
+  LeaseIntervalPreview,
+  LeaseNotes
+} from './LeaseFormComponents';
 
 interface LeaseFormProps {
   isOpen: boolean;
@@ -20,15 +25,6 @@ interface LeaseFormProps {
   onSubmit: (leaseData: Omit<Lease, 'id' | 'createdAt'>) => Promise<void>;
   onClose: () => void;
 }
-
-const timeUnits = [
-  { value: 'minutes', label: 'Minutes' },
-  { value: 'hours', label: 'Hours' },
-  { value: 'days', label: 'Days' },
-  { value: 'weeks', label: 'Weeks' },
-  { value: 'months', label: 'Months' },
-  { value: 'years', label: 'Years' },
-];
 
 export const LeaseForm: React.FC<LeaseFormProps> = ({
   isOpen,
@@ -106,14 +102,14 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: editingLease.tenantId,
         start_date: new Date(editingLease.startDate).toISOString().slice(0, 16),
         end_date: editingLease.endDate,
-        rent_amount: Number(editingLease.rentAmount),
-        deposit: Number(editingLease.deposit),
+        rent_amount: editingLease.rentAmount,
+        deposit: editingLease.deposit,
         lease_type: editingLease.leaseType,
         chargePeriodValue: value,
         chargePeriodUnit: unit,
         frequency: editingLease.frequency,
         deposit_collected: editingLease.depositCollectedAmount ? editingLease.depositCollectedAmount > 0 : false,
-        deposit_collected_amount: Number(editingLease.depositCollectedAmount || 0),
+        deposit_collected_amount: editingLease.depositCollectedAmount || 0,
         notes: editingLease.notes || ''
       });
       setCalculatedEndDate(new Date(editingLease.endDate).toISOString().slice(0, 16));
@@ -124,20 +120,24 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         tenant_id: '',
         start_date: '',
         end_date: '',
-        rent_amount: 0 as number,
-        deposit: 0 as number,
+        rent_amount: 0,
+        deposit: 0,
         lease_type: 'fixed_term',
         chargePeriodValue: defaultChargePeriod.value,
         chargePeriodUnit: defaultChargePeriod.unit,
         frequency: 1,
         deposit_collected: false,
-        deposit_collected_amount: 0 as number,
+        deposit_collected_amount: 0,
         notes: ''
       });
       setCalculatedEndDate('');
       setCalculatedIntervals([]);
     }
   }, [editingLease]);
+
+  const handleFormDataChange = (data: Partial<typeof formData>) => {
+    setFormData(prev => ({ ...prev, ...data }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,314 +219,46 @@ export const LeaseForm: React.FC<LeaseFormProps> = ({
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Asset
-              </label>
-              <select
-                value={formData.asset_id}
-                onChange={(e) => setFormData({ ...formData, asset_id: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Asset</option>
-                {assets.filter(asset => {
-                  // For new leases, only show vacant assets
-                  // For editing, show the current asset plus vacant assets
-                  if (!editingLease) {
-                    return asset.status === 'vacant';
-                  } else {
-                    return asset.status === 'vacant' || asset.id === editingLease.assetId;
-                  }
-                }).map((asset) => (
-                  <option key={asset.id} value={asset.id}>
-                    {asset.name} - {asset.address}
-                  </option>
-                ))}
-              </select>
-              {!editingLease && assets.filter(asset => asset.status === 'vacant').length === 0 && (
-                <p className="text-xs text-amber-600 mt-1">
-                  All assets are currently occupied. You need vacant assets to create new leases.
-                </p>
-              )}
-            </div>
+          {/* Basic Information */}
+          <LeaseBasicInfo
+            formData={formData}
+            assets={assets}
+            tenants={tenants}
+            editingLease={editingLease}
+            onFormDataChange={handleFormDataChange}
+          />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tenant
-              </label>
-              <select
-                value={formData.tenant_id}
-                onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Tenant</option>
-                {tenants.filter(tenant => tenant.status === 'active').map((tenant) => (
-                  <option key={tenant.id} value={tenant.id}>
-                    {tenant.name}
-                  </option>
-                ))}
-                {tenants.filter(tenant => tenant.status === 'active').length === 0 && (
-                  <option value="" disabled>No active tenants available</option>
-                )}
-              </select>
-              {tenants.filter(tenant => tenant.status === 'active').length === 0 && (
-                <p className="text-xs text-amber-600 mt-1">
-                  You need active tenants to create leases. Add tenants first.
-                </p>
-              )}
-            </div>
+          {/* Dates */}
+          <LeaseDates
+            formData={formData}
+            calculatedEndDate={calculatedEndDate}
+            onFormDataChange={handleFormDataChange}
+          />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
+          {/* Financial Information */}
+          <LeaseFinancials
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+          />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                End Date & Time (Calculated)
-              </label>
-              <input
-                type="datetime-local"
-                value={calculatedEndDate}
-                readOnly
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-600"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Automatically calculated based on start date, charge period, and frequency
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rent Amount
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.rent_amount}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  if (inputValue === '') {
-                    setFormData({ ...formData, rent_amount: 0 });
-                    return;
-                  }
-                  // Handle the input as string first, then convert to number
-                  const numericValue = parseFloat(inputValue);
-                  if (isNaN(numericValue)) {
-                    setFormData({ ...formData, rent_amount: 0 });
-                    return;
-                  }
-                  // Ensure precision by using the exact input value
-                  const preciseValue = Math.max(0, numericValue);
-                  setFormData({ ...formData, rent_amount: preciseValue });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Security Deposit
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.deposit}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  if (inputValue === '') {
-                    setFormData({ ...formData, deposit: 0 });
-                    return;
-                  }
-                  // Handle the input as string first, then convert to number
-                  const numericValue = parseFloat(inputValue);
-                  if (isNaN(numericValue)) {
-                    setFormData({ ...formData, deposit: 0 });
-                    return;
-                  }
-                  // Ensure precision by using the exact input value
-                  const preciseValue = Math.max(0, numericValue);
-                  setFormData({ ...formData, deposit: preciseValue });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lease Type
-              </label>
-              <select
-                value={formData.lease_type}
-                onChange={(e) => setFormData({ ...formData, lease_type: e.target.value as 'fixed_term' | 'month_to_month' })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="fixed_term">Fixed Term</option>
-                <option value="month_to_month">Month to Month</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total Periods
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.frequency}
-                onChange={(e) => setFormData({ ...formData, frequency: parseInt(e.target.value) })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* Charge Period Section */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="text-lg font-medium text-blue-900 mb-3">Charge Period Configuration</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-blue-800 mb-1">
-                  Period Duration
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={formData.chargePeriodValue}
-                  onChange={(e) => setFormData({ ...formData, chargePeriodValue: parseFloat(e.target.value) })}
-                  className="w-full border border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-blue-800 mb-1">
-                  Period Unit
-                </label>
-                <select
-                  value={formData.chargePeriodUnit}
-                  onChange={(e) => setFormData({ ...formData, chargePeriodUnit: e.target.value })}
-                  className="w-full border border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {timeUnits.map((unit) => (
-                    <option key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="mt-3 text-sm text-blue-700">
-              <strong>Preview:</strong> Each period is {formatMinutesToDuration(convertDurationToMinutes(formData.chargePeriodValue, formData.chargePeriodUnit))}
-            </div>
-          </div>
+          {/* Charge Period Configuration */}
+          <LeaseChargePeriod
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+          />
 
           {/* Payment Intervals Preview */}
-          {calculatedIntervals.length > 0 && (
-            <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="text-lg font-medium text-green-900 mb-3">Payment Intervals Preview</h3>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {calculatedIntervals.map((interval, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 text-green-600 mr-2" />
-                      <span className="font-medium text-green-900">Period {index + 1}</span>
-                    </div>
-                    <div className="text-sm text-green-700">
-                      <span className="font-medium">Start:</span> {formatDateTime(interval.start)} 
-                      <span className="mx-2">→</span>
-                      <span className="font-medium">End:</span> {formatDateTime(interval.end)}
-                    </div>
-                    <div className="text-sm font-medium text-green-800">
-                      {formData.rent_amount ? formatCurrency(parseFloat(formData.rent_amount)) : '—'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 text-sm text-green-700">
-                <strong>Total:</strong> {calculatedIntervals.length} payment periods
-                {formData.rent_amount > 0 && (
-                  <span className="ml-2">
-                    <strong>Total Amount:</strong> {formatCurrency(formData.rent_amount * calculatedIntervals.length)}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
+          <LeaseIntervalPreview
+            intervals={calculatedIntervals}
+            rentAmount={formData.rent_amount}
+          />
 
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="deposit_collected"
-              checked={formData.deposit_collected}
-              onChange={(e) => setFormData({ ...formData, deposit_collected: e.target.checked })}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="deposit_collected" className="text-sm font-medium text-gray-700">
-              Deposit Collected
-            </label>
-          </div>
-
-          {formData.deposit_collected && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Deposit Collected Amount
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.deposit_collected_amount}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  if (inputValue === '') {
-                    setFormData({ ...formData, deposit_collected_amount: 0 });
-                    return;
-                  }
-                  // Handle the input as string first, then convert to number
-                  const numericValue = parseFloat(inputValue);
-                  if (isNaN(numericValue)) {
-                    setFormData({ ...formData, deposit_collected_amount: 0 });
-                    return;
-                  }
-                  // Ensure precision and clamp to deposit amount
-                  const preciseValue = Math.max(0, numericValue);
-                  const clampedValue = Math.min(preciseValue, formData.deposit);
-                  setFormData({ ...formData, deposit_collected_amount: clampedValue });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Maximum: {formatCurrency(formData.deposit)}
-              </p>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={3}
-            />
-          </div>
-
+          {/* Notes */}
+          <LeaseNotes
+            notes={formData.notes}
+            onNotesChange={(notes) => handleFormDataChange({ notes })}
+          />
+          
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
             <button
               type="button"
