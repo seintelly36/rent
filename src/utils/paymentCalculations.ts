@@ -70,12 +70,12 @@ export const calculateCollectionData = (
   const periodsToCollect = Math.max(0, currentPeriod - totalPeriodsPaid);
   const amountToCollect = periodsToCollect * lease.rentAmount;
 
+  // Check if lease is active
+  const isActive = lease.status === 'active' && new Date(lease.endDate) > currentDate;
+
   console.log('- Periods to collect:', periodsToCollect);
   console.log('- Amount to collect:', amountToCollect);
   console.log('- Is active:', isActive);
-
-  // Check if lease is active
-  const isActive = lease.status === 'active' && new Date(lease.endDate) > currentDate;
 
   return {
     lease,
