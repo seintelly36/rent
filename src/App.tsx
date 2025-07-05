@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { TopBar } from './components/TopBar';
 import { ResponsiveNav } from './components/ResponsiveNav';
 import { Dashboard } from './components/Dashboard';
@@ -36,6 +36,7 @@ import { isOverdue } from './utils/dateUtils';
 function App() {
   const { user, loading: authLoading } = useAuth();
   const { notifications, hideNotification } = useNotificationContext();
+  const location = useLocation();
   const [isNavOpen, setIsNavOpen] = useState(false);
   
   const {
@@ -44,6 +45,7 @@ function App() {
     addAssetType,
     updateAssetType,
     deleteAssetType,
+    refetch: refetchAssetTypes,
   } = useAssetTypes(user?.id);
 
   const {
@@ -52,6 +54,7 @@ function App() {
     addAsset,
     updateAsset,
     deleteAsset,
+    refetch: refetchAssets,
   } = useAssets(user?.id);
 
   const {
@@ -60,6 +63,7 @@ function App() {
     addTenant,
     updateTenant,
     deleteTenant,
+    refetch: refetchTenants,
   } = useTenants(user?.id);
 
   const {
@@ -79,7 +83,64 @@ function App() {
     updatePayment,
     deletePayment,
     collectPaymentWithDeposit,
+    refetch: refetchPayments,
   } = usePayments(user?.id);
+
+  // Refetch data when navigation changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const currentPath = location.pathname;
+    
+    // Determine which data to refetch based on the current route
+    switch (currentPath) {
+      case '/dashboard':
+        // Dashboard needs all data for comprehensive overview
+        refetchAssets();
+        refetchTenants();
+        refetchPayments();
+        refetchLeases();
+        break;
+      case '/assets':
+        refetchAssets();
+        refetchAssetTypes(); // Assets page needs asset types for the form
+        refetchTenants(); // Assets page shows tenant information
+        break;
+      case '/asset-types':
+        refetchAssetTypes();
+        break;
+      case '/tenants':
+        refetchTenants();
+        break;
+      case '/leases':
+        refetchLeases();
+        refetchAssets(); // Leases page needs assets for lease forms and display
+        refetchTenants(); // Leases page needs tenants for lease forms and display
+        break;
+      case '/payments':
+        refetchPayments();
+        refetchTenants(); // Payments page shows tenant information
+        refetchAssets(); // Payments page shows asset information
+        break;
+      case '/collections':
+        refetchLeases(); // Collections page is based on lease data
+        refetchPayments(); // Collections page needs payment data
+        refetchAssets(); // Collections page shows asset information
+        refetchTenants(); // Collections page shows tenant information
+        break;
+      case '/reports':
+        // Reports page needs all data for comprehensive reporting
+        refetchAssets();
+        refetchTenants();
+        refetchLeases();
+        refetchPayments();
+        refetchAssetTypes();
+        break;
+      default:
+        // For any other routes, don't refetch to avoid unnecessary API calls
+        break;
+    }
+  }, [location.pathname, user?.id, refetchAssets, refetchAssetTypes, refetchTenants, refetchLeases, refetchPayments]);
 
   // Update payment status based on due dates
   useEffect(() => {
